@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Random Group Generator</title>
+  <style>
+    :root {
+      --bg-1: #0f172a;
+      --bg-2: #111827;
+      --panel: rgba(255,255,255,0.08);
+      --panel-strong: rgba(255,255,255,0.12);
+      --border: rgba(255,255,255,0.14);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --accent: #60a5fa;
+      --accent-2: #22c55e;
+      --danger: #fb7185;
+      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(96,165,250,0.20), transparent 32%),
+        radial-gradient(circle at top right, rgba(34,197,94,0.16), transparent 28%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    }
+
+    body {
+      padding: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app {
+      width: min(1200px, 100%);
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    .sidebar {
+      padding: 24px;
+      position: sticky;
+      top: 20px;
+      height: fit-content;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 2rem;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.55;
+    }
+
+    .section {
+      margin-top: 24px;
+      padding: 18px;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+
+    .section h2 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .stat {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .slider-wrap {
+      margin-top: 14px;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .slider-label {
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .slider-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text);
+      min-width: 48px;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), #93c5fd);
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--accent);
+      box-shadow: 0 8px 20px rgba(96,165,250,0.35);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--accent);
+      box-shadow: 0 8px 20px rgba(96,165,250,0.35);
+      cursor: pointer;
+    }
+
+    .slider-scale {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    button {
+      border: none;
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-2px); }
+    button:active { transform: translateY(0); }
+
+    .primary {
+      background: linear-gradient(135deg, var(--accent), #3b82f6);
+      color: white;
+      box-shadow: 0 12px 24px rgba(59,130,246,0.28);
+    }
+
+    .secondary {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .ghost {
+      width: 100%;
+      margin-top: 12px;
+      background: rgba(251,113,133,0.10);
+      color: #fecdd3;
+      border: 1px solid rgba(251,113,133,0.22);
+    }
+
+    .full-width {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .main {
+      padding: 24px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: -0.03em;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(34,197,94,0.12);
+      border: 1px solid rgba(34,197,94,0.26);
+      color: #dcfce7;
+      font-size: 0.9rem;
+      font-weight: 700;
+      transition: all 0.25s ease;
+    }
+
+    .badge.shuffling {
+      background: rgba(96,165,250,0.14);
+      border-color: rgba(96,165,250,0.3);
+      color: #dbeafe;
+    }
+
+    .helper {
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.55;
+      margin-bottom: 18px;
+    }
+
+    .groups-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+    }
+
+    .group-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 22px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+      animation: popIn 0.35s ease;
+    }
+
+    .group-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      opacity: 0.95;
+    }
+
+    .group-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .group-title {
+      margin: 0;
+      font-size: 1.08rem;
+      letter-spacing: -0.02em;
+    }
+
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .member-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .member {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      line-height: 1.4;
+      font-size: 0.95rem;
+    }
+
+    .empty-state {
+      padding: 42px 22px;
+      border-radius: 24px;
+      border: 1px dashed rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .roster {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .roster-editor {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .roster-editor-label {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .roster-textarea {
+      width: 100%;
+      min-height: 170px;
+      resize: vertical;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      background: rgba(15,23,42,0.45);
+      color: var(--text);
+      padding: 14px 16px;
+      font: inherit;
+      line-height: 1.5;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .roster-textarea:focus {
+      border-color: rgba(96,165,250,0.6);
+      box-shadow: 0 0 0 4px rgba(96,165,250,0.12);
+    }
+
+    .roster-controls {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .roster h3 {
+      margin: 0 0 14px;
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .roster-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .roster-item {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #e5eef9;
+      font-size: 0.92rem;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes pulseGlow {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(96,165,250,0.25);
+      }
+      50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 12px rgba(96,165,250,0.04);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(96,165,250,0);
+      }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .is-shuffling .group-card {
+      animation: pulseGlow 0.55s ease;
+    }
+
+    .loading-panel {
+      padding: 28px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      text-align: center;
+    }
+
+    .loading-bar {
+      height: 12px;
+      width: 100%;
+      margin-top: 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(96,165,250,0.18), rgba(147,197,253,0.45), rgba(34,197,94,0.18));
+      background-size: 200% 100%;
+      animation: shimmer 1s linear infinite;
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 16px; }
+      .sidebar, .main { padding: 18px; }
+      .actions { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .title { font-size: 1.7rem; }
+      .roster-controls { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="panel sidebar">
+      <h1 class="title">Random Group Generator</h1>
+      <p class="subtitle">
+        Create random groups in seconds.
+      </p>
+
+      <div class="section">
+        <h2>Class Overview</h2>
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-label">Students</span>
+            <span class="stat-value" id="studentCount">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Groups</span>
+            <span class="stat-value" id="groupCount">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Group Size</h2>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <span class="slider-label">People per group</span>
+            <span class="slider-value" id="groupSizeValue">3</span>
+          </div>
+          <input id="groupSizeSlider" type="range" min="2" max="10" step="1" value="3" />
+          <div class="slider-scale">
+            <span>2</span>
+            <span>4</span>
+            <span>6</span>
+            <span>8</span>
+            <span>10</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" id="generateBtn">Generate Groups</button>
+          </div>
+        <button class="secondary full-width" id="saveRosterBtn">Save Class List</button>
+        <button class="ghost" id="resetBtn">Reset View</button>
+      </div>
+
+      <div class="footer-note">
+        Randomized automatically while keeping groups as balanced as possible.
+      </div>
+    </aside>
+
+    <main class="panel main">
+      <div class="topbar">
+        <h2>Generated Groups</h2>
+        <div class="badge" id="statusBadge">Ready to generate</div>
+      </div>
+
+      <div class="helper">
+        Use the slider to choose the number of people in each group, then press <strong>Generate Groups</strong>. Any extra students are distributed across the groups so the class stays balanced.
+      </div>
+
+      <div id="groupsContainer" class="groups-grid">
+        <div class="empty-state">
+          No groups generated yet.<br>
+          Pick a group size and create a random set of teams.
+        </div>
+      </div>
+
+      <section class="roster">
+        <h3>Class List</h3>
+        <div class="roster-editor">
+          <div class="roster-editor-label">
+            Enter one student per line. Your class list can still be saved in the browser and will stay here the next time you open the page.
+          </div>
+          <textarea id="rosterTextarea" class="roster-textarea" spellcheck="false"></textarea>
+          <div class="roster-controls">
+            <button class="secondary" id="applyRosterBtn">Apply Edited List</button>
+            <button class="secondary" id="restoreDefaultBtn">Restore Original List</button>
+          </div>
+        </div>
+        <div class="roster-grid" id="rosterGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const defaultStudents = [];
+
+    const STORAGE_KEY = "random-group-generator-class-list-v1";
+    let students = loadSavedStudents();
+
+    const slider = document.getElementById("groupSizeSlider");
+    const groupSizeValue = document.getElementById("groupSizeValue");
+    const generateBtn = document.getElementById("generateBtn");
+        const resetBtn = document.getElementById("resetBtn");
+    const saveRosterBtn = document.getElementById("saveRosterBtn");
+    const applyRosterBtn = document.getElementById("applyRosterBtn");
+    const restoreDefaultBtn = document.getElementById("restoreDefaultBtn");
+    const groupsContainer = document.getElementById("groupsContainer");
+    const groupCount = document.getElementById("groupCount");
+    const statusBadge = document.getElementById("statusBadge");
+    const rosterGrid = document.getElementById("rosterGrid");
+    const rosterTextarea = document.getElementById("rosterTextarea");
+    const studentCount = document.getElementById("studentCount");
+
+    function loadSavedStudents() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return [...defaultStudents];
+        const parsed = JSON.parse(saved);
+        if (!Array.isArray(parsed) || !parsed.length) return [...defaultStudents];
+        return parsed;
+      } catch (error) {
+        return [...defaultStudents];
+      }
+    }
+
+    function saveStudents() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+    }
+
+    function updateStudentCount() {
+      studentCount.textContent = students.length;
+    }
+
+    function renderRoster() {
+      rosterGrid.innerHTML = "";
+      rosterTextarea.value = students.join("\n");
+
+      students.forEach((student, index) => {
+        const item = document.createElement("div");
+        item.className = "roster-item";
+        item.textContent = `${index + 1}. ${student}`;
+        rosterGrid.appendChild(item);
+      });
+
+      updateStudentCount();
+    }
+
+    function updateSliderLabel() {
+      groupSizeValue.textContent = slider.value;
+    }
+
+    function shuffle(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function makeBalancedGroups(list, preferredSize) {
+      const shuffled = shuffle(list);
+      const total = shuffled.length;
+
+      let numGroups = Math.round(total / preferredSize);
+      numGroups = Math.max(1, numGroups);
+
+      const baseSize = Math.floor(total / numGroups);
+      const extras = total % numGroups;
+
+      const groups = [];
+      let index = 0;
+
+      for (let i = 0; i < numGroups; i++) {
+        const currentSize = baseSize + (i < extras ? 1 : 0);
+        groups.push(shuffled.slice(index, index + currentSize));
+        index += currentSize;
+      }
+
+      return groups;
+    }
+
+    function renderGroups(groups) {
+      groupsContainer.classList.remove("is-shuffling");
+      groupsContainer.innerHTML = "";
+
+      groups.forEach((group, index) => {
+        const card = document.createElement("article");
+        card.className = "group-card";
+
+        const members = group.map(name => `<div class="member">${name}</div>`).join("");
+
+        card.innerHTML = `
+          <div class="group-head">
+            <h3 class="group-title">Group ${index + 1}</h3>
+            <span class="pill">${group.length} member${group.length !== 1 ? "s" : ""}</span>
+          </div>
+          <div class="member-list">${members}</div>
+        `;
+
+        groupsContainer.appendChild(card);
+      });
+
+      requestAnimationFrame(() => {
+        groupsContainer.classList.add("is-shuffling");
+      });
+
+      groupCount.textContent = groups.length;
+      statusBadge.textContent = `${groups.length} group${groups.length !== 1 ? "s" : ""} generated`;
+      statusBadge.classList.remove("shuffling");
+    }
+
+    function showShuffleAnimation() {
+      statusBadge.textContent = "Shuffling...";
+      statusBadge.classList.add("shuffling");
+      groupsContainer.innerHTML = `
+        <div class="loading-panel">
+          <div>Generating groups...</div>
+          <div class="loading-bar"></div>
+        </div>
+      `;
+    }
+
+    function generateGroups() {
+      if (students.length < 2) {
+        statusBadge.textContent = "Add at least 2 students";
+        statusBadge.classList.remove("shuffling");
+        return;
+      }
+
+      const size = Number(slider.value);
+      showShuffleAnimation();
+
+      setTimeout(() => {
+        const groups = makeBalancedGroups(students, size);
+        renderGroups(groups);
+      }, 700);
+    }
+
+    function resetView() {
+      groupsContainer.classList.remove("is-shuffling");
+      groupsContainer.innerHTML = `
+        <div class="empty-state">
+          No groups generated yet.<br>
+          Pick a group size and create a random set of teams.
+        </div>
+      `;
+      groupCount.textContent = "—";
+      statusBadge.textContent = "Ready to generate";
+      statusBadge.classList.remove("shuffling");
+    }
+
+    function parseRosterText() {
+      return rosterTextarea.value
+        .split("\n")
+        .map(name => name.trim())
+        .filter(Boolean);
+    }
+
+    function applyRosterChanges() {
+      const updated = parseRosterText();
+      students = updated.length ? updated : [...defaultStudents];
+      renderRoster();
+      resetView();
+      statusBadge.textContent = `Loaded ${students.length} student${students.length !== 1 ? "s" : ""}`;
+    }
+
+    function restoreDefaultRoster() {
+      students = [...defaultStudents];
+      renderRoster();
+      saveStudents();
+      resetView();
+      statusBadge.textContent = "Original class restored";
+    }
+
+    function saveRosterToBrowser() {
+      const updated = parseRosterText();
+      students = updated.length ? updated : [...defaultStudents];
+      saveStudents();
+      renderRoster();
+      resetView();
+      statusBadge.textContent = "Class list saved";
+    }
+
+    slider.addEventListener("input", updateSliderLabel);
+    generateBtn.addEventListener("click", generateGroups);
+        resetBtn.addEventListener("click", resetView);
+    applyRosterBtn.addEventListener("click", applyRosterChanges);
+    restoreDefaultBtn.addEventListener("click", restoreDefaultRoster);
+    saveRosterBtn.addEventListener("click", saveRosterToBrowser);
+
+    updateSliderLabel();
+    renderRoster();
+  </script>
+</body>
+</html>
